@@ -35,7 +35,7 @@ if __name__ == "__main__":
     minecraft_host = input("Target IP address: ")
     minecraft_port = int(input("Target port: "))
     duration = int(input("Enter test duration (seconds, max 1000): "))
-    num_packets_per_second = int(input("Enter packets per second (max 1000000): "))
+    num_packets_per_second = int(input("Amout of packets (Empty) (max 1000000): "))
     duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
     num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
     total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration)
