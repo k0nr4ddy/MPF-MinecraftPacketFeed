@@ -8,11 +8,10 @@ def send_packets(host, port, num_packets_per_second, duration):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         end_time = time.time() + duration
         packets_sent = 0
-        while time.time() < end_time:
-            for _ in range(min(num_packets_per_second, 100)):  # Limit max packets per 100 seconds to 100
-                sock.sendto(b'\x00', (host, port))  # Sending an empty packet
-                packets_sent += 1
-            time.sleep(1)  # Send packets once per second
+        while time.time() < end_time and packets_sent < num_packets_per_second * duration:
+            sock.sendto(b'\x00', (host, port))  # Sending an empty packet
+            packets_sent += 1
+            time.sleep(0.001)  # Send packets thousand per second
         return packets_sent
     except socket.error as e:
         print(f"Error: {e}")
@@ -29,15 +28,16 @@ def get_server_info():
     return cpu_usage, memory_usage, disk_usage, network_usage
 
 if __name__ == "__main__":
-    T = "MPF - MinecraftPacketFeed"
+    T = "MinecraftPacketFeed"
     ASCII_art = pyfiglet.figlet_format(T)
     print(ASCII_art)
 
-    minecraft_host = input("Enter Minecraft server IP address or domain name: ")
-    minecraft_port = int(input("Enter Minecraft server port: "))
-    duration = int(input("Enter test duration in seconds: "))
-    num_packets_per_second = int(input("Enter packets per second (max 100): "))
-    num_packets_per_second = min(num_packets_per_second, 100)  # Limit max packets per second to 100
+    minecraft_host = input("Target IP address: ")
+    minecraft_port = int(input("Target port: "))
+    duration = int(input("Enter test duration (seconds, max 1000): "))
+    num_packets_per_second = int(input("Enter packets per second (max 1000000): "))
+    duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
+    num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
     total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration)
     if total_packets_sent != -1:
         overall_packets_sent = total_packets_sent
