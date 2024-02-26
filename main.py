@@ -12,12 +12,6 @@ def create_heavy_packet(size_in_bytes):
     heavy_data = b'A' * size_in_bytes  # Create a byte string consisting of 'A's repeated size_in_bytes times
     return heavy_data
 
-def write_packet_to_file(packet, filename):
-    # Write the heavy packet to a file
-    with open(filename, 'wb') as file:
-        file.write(packet)
-    print(f"Heavy packet written to {filename}")
-
 def send_packets(host, port, num_packets_per_second, duration, storage_per_packet):
     global stop_flag
     try:
@@ -28,7 +22,7 @@ def send_packets(host, port, num_packets_per_second, duration, storage_per_packe
             heavy_packet = create_heavy_packet(storage_per_packet)  # Creating a heavy packet with size_in_bytes
             sock.sendto(heavy_packet, (host, port))  # Sending the heavy packet
             packets_sent += 1
-            time.sleep(0.001)  # Send packets thousand per second
+            time.sleep(1.0 / num_packets_per_second)  # Send packets at specified rate
         return packets_sent
     except socket.error as e:
         print(f"Error: {e}")
@@ -57,10 +51,8 @@ if __name__ == "__main__":
     minecraft_host = input("Target IP address: ")
     minecraft_port = int(input("Target port: "))
     duration = int(input("Enter test duration (seconds, max 1000): "))
-    num_packets_per_second = int(input("Amount of packets (Empty) (max 1000000): "))
+    num_packets_per_second = int(input("Packets per second (max 1000): "))
     storage_per_packet = int(input("Storage Per Packet (in bytes): "))
-    duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
-    num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
     
     # Start packet sending thread
     packet_thread = threading.Thread(target=send_packets, args=(minecraft_host, minecraft_port, num_packets_per_second, duration, storage_per_packet))
@@ -72,8 +64,6 @@ if __name__ == "__main__":
             print("Available commands:")
             print("/print cpu - Print CPU usage")
             print("/print memory - Print memory usage")
-            print("/print packets - Print total packets sent")
-            print("/overall send packets - Print overall packets sent during the test session")
             print("/stop - Stop sending packets")
             print("/exit - Exit the program")
         elif command == '/print cpu':
@@ -82,10 +72,6 @@ if __name__ == "__main__":
         elif command == '/print memory':
             _, memory_usage, _, _ = get_server_info()
             print(f"Memory Usage: {memory_usage}%")
-        elif command == '/print packets':
-            print(f"Total packets sent: {total_packets_sent}")
-        elif command == '/overall send packets':
-            print(f"Overall packets sent: {overall_packets_sent}")
         elif command == '/stop':
             stop_packet_sending()
         elif command == '/exit':
