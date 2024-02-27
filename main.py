@@ -41,6 +41,11 @@ if __name__ == "__main__":
     packet_size = int(input("Enter packet size in bytes: "))  # Ask for packet size input
     duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
     num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
+    
+    # Adjust parameters to increase stress on the server
+    num_packets_per_second = max(num_packets_per_second, 1000)  # Increase minimum packets per second
+    packet_size = max(packet_size, 1024)  # Increase minimum packet size
+    
     total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration, packet_size)
     if total_packets_sent != -1:
         overall_packets_sent = total_packets_sent
