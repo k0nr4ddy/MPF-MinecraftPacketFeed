@@ -4,8 +4,6 @@ import time
 import psutil
 import threading
 import random
-import os
-import shutil
 
 # Define constants
 MAX_DURATION = 1000  # Maximum test duration in seconds
@@ -34,60 +32,6 @@ PROXIES = [
 # Generate more proxy IP addresses
 for i in range(11, 10000001):
     PROXIES.append((f"192.0.2.{i}", 12345))
-
-# Function to connect to the database
-def get_database():
-    # Replace the following variables with the actual paths and database name
-    database_path = "/path/to/your/database"
-    backup_path = "/path/to/backup/folder"
-    database_name = "your_database.db"
-
-    try:
-        # Create a backup folder if it doesn't exist
-        if not os.path.exists(backup_path):
-            os.makedirs(backup_path)
-
-        # Copy the database file to the backup folder
-        shutil.copy2(os.path.join(database_path, database_name), backup_path)
-        print("Database backup created successfully.")
-    except Exception as e:
-        print(f"Error creating database backup: {e}")
-
-def connect_to_database():
-    try:
-        # Update connection details according to your database configuration
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="username",
-            password="password",
-            database="minecraft"
-        )
-        print("Connected to database successfully!")
-        return connection
-    except Exception as e:
-        print(f"Failed to connect to the database: {e}")
-        return None
-
-def execute_query(connection, query):
-    try:
-        cursor = connection.cursor()
-        cursor.execute(query)
-        result = cursor.fetchall()
-        cursor.close()
-        return result
-    except Exception as e:
-        print(f"Error executing query: {e}")
-        return None
-
-def fetch_player_data(connection):
-    query = "SELECT * FROM players"
-    result = execute_query(connection, query)
-    if result:
-        print("Player data:")
-        for row in result:
-            print(row)  # Adjust printing format based on your database schema
-    else:
-        print("Failed to fetch player data from the database.")
 
 def send_packets(host, port, num_packets_per_second, duration, packet_size):
     try:
@@ -131,8 +75,6 @@ def print_help():
     print("/print memory - Print memory usage")
     print("/print packets - Print total packets sent")
     print("/overall send packets - Print overall packets sent during the test session")
-    print("/getinfo - Get specifications of the physical server's PC")
-    print("/get database - Download the server's database")
     print("/exit - Exit the program")
 
 def loading_screen():
@@ -150,9 +92,6 @@ def loading_screen():
 
 def main():
     try:
-        # Connect to the database
-        connection = connect_to_database()
-
         # Display program name in ASCII art
         program_name = "MinecraftPacketFeed"
         ascii_art = pyfiglet.figlet_format(program_name)
@@ -195,14 +134,6 @@ def main():
                         print(f"Total packets sent: {total_packets_sent}")
                     elif command == '/overall send packets':
                         print(f"Overall packets sent: {overall_packets_sent}")
-                    elif command == '/getinfo':
-                        cpu_usage, memory_usage, disk_usage, network_usage = get_server_info()
-                        print(f"CPU Usage: {cpu_usage}%")
-                        print(f"Memory Usage: {memory_usage}%")
-                        print(f"Disk Usage: {disk_usage}%")
-                        print(f"Network Usage: {network_usage}")
-                    elif command == '/get database':
-                        get_database()
                     elif command == '/exit':
                         print("Exiting program.")
                         return
@@ -210,9 +141,6 @@ def main():
                         print("Invalid command. Type '/help' for available commands.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-    finally:
-        if connection:
-            connection.close()
 
 if __name__ == "__main__":
     main()
