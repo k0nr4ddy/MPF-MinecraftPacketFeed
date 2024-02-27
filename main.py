@@ -47,7 +47,7 @@ if __name__ == "__main__":
     minecraft_host = input("Target IP address: ")
     minecraft_port = int(input("Target port: "))
     duration = int(input("Enter test duration (seconds, max 1000): "))
-    num_packets_per_second = int(input("Amout of packets (Empty) (max 1000000): "))
+    num_packets_per_second = int(input("Amount of packets per second (max 1000000): "))
     packet_size = int(input("Enter packet size in bytes (max 1000000): "))  # Prompt user for packet size
     packet_size = min(packet_size, 1000000)  # Limit packet size to 1 million bytes
     duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
