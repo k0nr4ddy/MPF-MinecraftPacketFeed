@@ -48,10 +48,11 @@ if __name__ == "__main__":
     minecraft_port = int(input("Target port: "))
     duration = int(input("Enter test duration (seconds, max 1000): "))
     num_packets_per_second = int(input("Amount of packets per second (max 1000000): "))
-    packet_size = int(input("Enter packet size in bytes (max 1000000): "))  # Prompt user for packet size
-    packet_size = min(packet_size, 1000000)  # Limit packet size to 1 million bytes
     duration = min(duration, 1000)  # Limit max test duration to 1000 seconds
     num_packets_per_second = min(num_packets_per_second, 1000000)  # Limit max packets per second to 1000000
+    
+    packet_size = 1000000  # Set packet size to 1,000,000 bytes (1MB)
+    
     total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration, packet_size)
     if total_packets_sent != -1:
         overall_packets_sent = total_packets_sent
@@ -63,7 +64,7 @@ if __name__ == "__main__":
                 print("/print memory - Print memory usage")
                 print("/print packets - Print total packets sent")
                 print("/overall send packets - Print overall packets sent during the test session")
-                print("/exit - Exit the program")
+                print("/stop - Stop the program")
             elif command == '/print cpu':
                 cpu_usage, _, _, _ = get_server_info()
                 print(f"CPU Usage: {cpu_usage}%")
@@ -74,7 +75,7 @@ if __name__ == "__main__":
                 print(f"Total packets sent: {total_packets_sent}")
             elif command == '/overall send packets':
                 print(f"Overall packets sent: {overall_packets_sent}")
-            elif command == '/exit':
+            elif command == '/stop':
                 print("Exiting program.")
                 break
             else:
