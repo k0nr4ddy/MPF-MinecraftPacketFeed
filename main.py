@@ -35,14 +35,13 @@ PROXIES = [
 for i in range(11, 10000001):
     PROXIES.append((f"192.0.2.{i}", 12345))
 
-# Function to connect to the database
 def get_database():
-    # Replace the following variables with the actual paths and database name
-    database_path = "/path/to/your/database"
-    backup_path = "/path/to/backup/folder"
-    database_name = "your_database.db"
-
     try:
+        # Replace the following variables with the actual paths and database name
+        database_path = "/path/to/your/database"
+        backup_path = "/path/to/backup/folder"
+        database_name = "your_database.db"
+
         # Create a backup folder if it doesn't exist
         if not os.path.exists(backup_path):
             os.makedirs(backup_path)
