@@ -1,12 +1,14 @@
 import pyfiglet
 import socket
 import time
-import psutil
 import threading
 import random
 import os
 import shutil
+import psutil
 import mysql.connector
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Define constants
 MAX_DURATION = 1000  # Maximum test duration in seconds
@@ -14,25 +16,20 @@ MAX_PACKETS_PER_SECOND = 1000000  # Maximum packets per second
 MIN_PACKETS_PER_SECOND = 1000  # Minimum packets per second for stress testing
 MIN_PACKET_SIZE = 1024  # Minimum packet size in bytes for stress testing
 PROXY_TIMEOUT = 5  # Timeout for proxy connections in seconds
-NUM_PROXIES = 10000000  # Number of proxy IP addresses
 
 # Generate proxy IP addresses
+NUM_PROXIES = 10000000  # Number of proxy IP addresses
 PROXIES = [(f"192.0.2.{i}", 12345) for i in range(1, NUM_PROXIES + 1)]
 
 # Function to connect to the database
-def get_database():
+def get_database(database_path, backup_path):
     try:
-        # Replace the following variables with the actual paths and database name
-        database_path = "/path/to/your/database"
-        backup_path = "/path/to/backup/folder"
-        database_name = "your_database.db"
-
         # Create a backup folder if it doesn't exist
         if not os.path.exists(backup_path):
             os.makedirs(backup_path)
 
         # Copy the database file to the backup folder
-        shutil.copy2(os.path.join(database_path, database_name), backup_path)
+        shutil.copy2(os.path.join(database_path, "your_database.db"), backup_path)
         print("Database backup created successfully.")
     except Exception as e:
         print(f"Error creating database backup: {e}")
@@ -135,7 +132,7 @@ def monitor_resources(duration):
     tps_data = simulate_tps_data(duration)
 
     for _ in range(duration):
-        cpu_usage, memory_usage, disk_usage, _ = get_server_info()
+        cpu_usage, memory_usage, disk_usage = get_server_info()  # Removed unused variable _
         cpu_data.append(cpu_usage)
         memory_data.append(memory_usage)
         disk_data.append(disk_usage)
@@ -145,18 +142,12 @@ def monitor_resources(duration):
 
 # Function to get server info
 def get_server_info():
-    try:
-        cpu_usage = psutil.cpu_percent(interval=1)
-        memory = psutil.virtual_memory()
-        memory_usage = memory.percent
-        disk = psutil.disk_usage('/')
-        disk_usage = disk.percent
-        net = psutil.net_io_counters()
-        network_usage = (net.bytes_sent, net.bytes_recv)
-        return cpu_usage, memory_usage, disk_usage, network_usage
-    except Exception as e:
-        print(f"An unexpected error occurred while getting server info: {e}")
-        return None, None, None, None
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    disk = psutil.disk_usage('/')
+    disk_usage = disk.percent
+    return cpu_usage, memory_usage, disk_usage
 
 # Function to print help
 def print_help():
@@ -173,7 +164,7 @@ def print_help():
 def loading_screen():
     try:
         while True:
-            cpu_usage, memory_usage, _, _ = get_server_info()
+            cpu_usage, memory_usage, _ = get_server_info()  # Removed unused variable _
             loading_bar_length = 20
             cpu_bar = "#" * int(cpu_usage * loading_bar_length / 100)
             memory_bar = "#" * int(memory_usage * loading_bar_length / 100)
@@ -197,7 +188,9 @@ def main():
         loading_thread.start()
 
         # Connect to the database
-        get_database()
+        database_path = input("Enter the path to your database: ")
+        backup_path = input("Enter the path to the backup folder: ")
+        get_database(database_path, backup_path)
 
         # Get user input for target server and test parameters
         minecraft_host = input("Enter target IP address: ")
