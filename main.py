@@ -6,8 +6,7 @@ import threading
 import random
 import os
 import shutil
-import matplotlib.pyplot as plt
-import numpy as np
+import mysql.connector
 
 # Define constants
 MAX_DURATION = 1000  # Maximum test duration in seconds
@@ -146,12 +145,18 @@ def monitor_resources(duration):
 
 # Function to get server info
 def get_server_info():
-    cpu_usage = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
-    memory_usage = memory.percent
-    disk = psutil.disk_usage('/')
-    disk_usage = disk.percent
-    return cpu_usage, memory_usage, disk_usage
+    try:
+        cpu_usage = psutil.cpu_percent(interval=1)
+        memory = psutil.virtual_memory()
+        memory_usage = memory.percent
+        disk = psutil.disk_usage('/')
+        disk_usage = disk.percent
+        net = psutil.net_io_counters()
+        network_usage = (net.bytes_sent, net.bytes_recv)
+        return cpu_usage, memory_usage, disk_usage, network_usage
+    except Exception as e:
+        print(f"An unexpected error occurred while getting server info: {e}")
+        return None, None, None, None
 
 # Function to print help
 def print_help():
